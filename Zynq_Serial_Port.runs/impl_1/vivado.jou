@@ -1,0 +1,12 @@
+#-----------------------------------------------------------
+# Vivado v2018.3 (64-bit)
+# SW Build 2405991 on Thu Dec  6 23:36:41 MST 2018
+# IP Build 2404404 on Fri Dec  7 01:43:56 MST 2018
+# Start of session at: Sun Aug 22 10:38:59 2021
+# Process ID: 25721
+# Current directory: /home/hp/projects/moj-pardaz/xilinx/vivado/Zynq_Serial_Port/Zynq_Serial_Port.runs/impl_1
+# Command line: vivado -log Base_Zynq_MPSoC_wrapper.vdi -applog -product Vivado -messageDb vivado.pb -mode batch -source Base_Zynq_MPSoC_wrapper.tcl -notrace
+# Log file: /home/hp/projects/moj-pardaz/xilinx/vivado/Zynq_Serial_Port/Zynq_Serial_Port.runs/impl_1/Base_Zynq_MPSoC_wrapper.vdi
+# Journal file: /home/hp/projects/moj-pardaz/xilinx/vivado/Zynq_Serial_Port/Zynq_Serial_Port.runs/impl_1/vivado.jou
+#-----------------------------------------------------------
+source Base_Zynq_MPSoC_wrapper.tcl -notrace
