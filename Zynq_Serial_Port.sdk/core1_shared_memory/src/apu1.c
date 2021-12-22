@@ -49,7 +49,7 @@
 #include "platform.h"
 #include "xil_printf.h"
 #include <unistd.h>
-#include "../../../apu_core0/src/addresses.h"
+#include "../../../core0_shared_memory/src/addresses.h"
 #include <malloc.h>
 #include <stdbool.h>
 #include <math.h>
