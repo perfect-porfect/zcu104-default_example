@@ -108,12 +108,6 @@ int main()
 {
 	volatile array_type* result = (volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS);
 	init_platform();
-//	double *pointer ;
-//	double normal = 123.421;
-//	uint64_t p = 0x405edaf1a9fbe76d;
-//	pointer = (double *)&p;
-////	double *new_num = (double*)((UINTPTR)0x405edaf1a9fbe76d);
-////	uint64_t *hex_val = (uint64_t*)(d);
 	printf("Core 0 start\n");
 	start_sample(0, 1);
 	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x11);
@@ -126,7 +120,6 @@ int main()
 		arrays_num[i] = value; //generate_random(12.32123);
 		value += 0.0001;
 	}
-
 
 	/****** Start SUM all array just in core0 *******/
 	XTime start, end;
