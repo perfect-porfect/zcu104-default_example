@@ -191,12 +191,12 @@ int main()
 	for (int i = 0 ; i < array_size; i++) {
 		sum += arrays_num[i];
 		if (i == half_array_size - 1) {
-			printf("First sum half : ‌0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
+			printf("First sum half: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
 			sum = 0;
 		}
 	}
 
-	printf("Second sum half: ‌0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
+	printf("Second sum half: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
 	printf("\n\n\n");
 
 	memcpy((array_type*)SHM_CORE1_START_ADDRESS, arrays_num, array_size);
