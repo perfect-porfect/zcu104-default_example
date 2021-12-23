@@ -55,6 +55,7 @@
 #include <unistd.h>
 #include <xtime_l.h>
 #include <math.h>
+#include <stdint.h>
 
 void wait_for_core1_signal(int val)
 {
@@ -81,20 +82,104 @@ void start_sample(const int start_core1, const int end_core1)
 		set_value_core1(counter_to_core1);
 		wait_for_core1_signal(counter_from_core1);
 		XTime_GetTime(&end);
-		printf("#%d:  CORE0 Output took %.2f us.\n", counter_to_core1,  1.0 * (end - start) / (COUNTS_PER_SECOND/1000000));
+//		printf("#%d:  CORE0 Output took %.2f us.\n", counter_to_core1,  1.0 * (end - start) / (COUNTS_PER_SECOND/1000000));
 		counter_from_core1--;
 		counter_to_core1++;
 	}
+}
+
+float generate_random(float upper)
+{
+	return (float)((float)rand() / (float)(RAND_MAX) / upper) ;
+}
+
+void check_value_shared(int* address, int val)
+{
+	while(*(volatile int*) address != (volatile int) val);
+}
+
+void set_value_shared(int* address, int val)
+{
+	*(volatile int*) address = (volatile int) val;
 }
 
 
 int main()
 {
 	init_platform();
-	printf("core 0 start\n");
-	start_sample(0, 10);
-	start_sample(40, 50);
-	start_sample(100, 500);
+	printf("Core 0 start\n");
+	start_sample(0, 1);
+	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x11);
+    array_type* arrays_num = (array_type*)(MASTER_CORE_START_DDR_ADDRESS + 0x50000);
+	uint32_t array_size = ARRAY_SIZE;
+	int half_array_size = ARRAY_SIZE / 2;
+
+	array_type value = 0.0;
+	for (int i = 0 ; i < array_size; i++) {
+		arrays_num[i] = value; //generate_random(12.32123);
+		value += 0.0001;
+	}
+
+
+	/****** Start SUM all array just in core0 *******/
+	XTime start, end;
+	XTime_GetTime(&start);
+	array_type sum = 0;
+	for (int i = 0 ; i < array_size; i++)
+		sum += arrays_num[i];
+	XTime_GetTime(&end);
+	long long int * val = (long long int*)(&sum);
+	printf("CORE0 all array sum took %.2f us.\nsum is: 0x%x\n",  1.0 * (end - start) / (COUNTS_PER_SECOND/1000000), *val);
+	printf("\n\n\n");
+
+	sum = 0;
+	for (int i = 0 ; i < array_size; i++) {
+		sum += arrays_num[i];
+		if (i == half_array_size - 1) {
+			printf("First sum half is: ‌0x%x\n", sum);
+			sum = 0;
+		}
+	}
+
+	printf("Second sum half is: ‌0x%x\n", sum);
+	printf("\n\n\n");
+
+	memcpy((array_type*)SHM_CORE1_START_ADDRESS, arrays_num, array_size);
+
+	/****** Start SUM half array in core0 and another half in core1 *******/
+	array_type main_sum = 0;
+	XTime_GetTime(&start);
+
+	set_value_shared(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x01);
+	sum = 0;
+	for (int i = half_array_size; i < array_size; i++)
+			sum += arrays_num[i];
+
+	check_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x01);
+	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x00);
+	volatile array_type* result = (volatile array_type*)(FLAG_SUM_VALUE_ADDRESS);
+	main_sum = (sum + *result);
+
+	XTime_GetTime(&end);
+	printf("Two cores sum took: %.2f us.\nHalf sum core0: 0x%x , half sum core1: 0x%x , main_sum: 0x%x\n",  1.0 * (end - start) / (COUNTS_PER_SECOND/1000000), sum, *(volatile array_type*)(FLAG_SUM_VALUE_ADDRESS), main_sum);
+	printf("\n\n\n");
+
+	/* Start SUM odd, even */
+	sleep(2);
+	sum = 0;
+	main_sum = 0;
+	XTime_GetTime(&start);
+	set_value_shared(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x01);
+
+	for (int i = 0; i < array_size; i+=2)
+			sum += arrays_num[i];
+	check_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x01);
+	main_sum = (sum + *(volatile array_type*)(FLAG_SUM_VALUE_ADDRESS));
+	XTime_GetTime(&end);
+
+	printf("Two cores Even & Odd mode took:  %.2f us.\nHalf sum core0: 0x%x , half sum core1: 0x%x , main_sum: 0x%x\n",  1.0 * (end - start) / (COUNTS_PER_SECOND/1000000), sum, *(volatile array_type*)(FLAG_SUM_VALUE_ADDRESS), main_sum);
+
+
 
 	cleanup_platform();
 	return 0;

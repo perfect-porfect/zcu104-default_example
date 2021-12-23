@@ -88,13 +88,51 @@ void start_sample(const int start_core0, const int end_core0)
 	}
 }
 
+void check_value_shared(int* address, int val)
+{
+	while(*(volatile int*) address != (volatile int) val);
+}
+
+void set_value_shared(int* address, int val)
+{
+	*(volatile int*) address = (volatile int) val;
+}
+
+
 int main()
 {
 	init_platform();
-	printf("core 1 start\n");
-	start_sample(10, 0);
-	start_sample(50, 40);
-	start_sample(500, 100);
+	uint32_t array_size = ARRAY_SIZE;
+	int half_array_size = array_size / 2;
+
+	printf("Core 1 start\n");
+	start_sample(1, 0);
+
+	/*START SUM HALF */
+	check_value_shared(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x01);
+	set_value_shared(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x00);
+	volatile array_type* arrays_num = (volatile array_type*)(MASTER_CORE_START_DDR_ADDRESS + 0x50000);
+	array_type sum = 0;
+
+	for (int i = 0 ; i < half_array_size; i++)
+		sum += arrays_num[i];
+
+	*(volatile array_type*)(FLAG_SUM_VALUE_ADDRESS) = sum;
+	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x01);
+//	printf("1: sum is: %f\n", sum);
+
+	sum = 0;
+	/* Start sum even */
+	check_value_shared(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x01);
+	set_value_shared(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x00);
+	for (int i = 1 ; i < array_size; i+=2)
+		sum += arrays_num[i];
+
+//	printf("2: sum is: %f\n", sum);
+	*(volatile array_type*)(FLAG_SUM_VALUE_ADDRESS) = sum;
+	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x01);
+
+
 	cleanup_platform();
 	return 0;
 }

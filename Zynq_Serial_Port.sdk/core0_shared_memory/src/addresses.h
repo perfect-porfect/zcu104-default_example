@@ -66,9 +66,21 @@
 
 #define RESULT_ADDRESS                     (0xB0000000)
 
-#define ARRAY_SIZE  (10000)
+#define ARRAY_SIZE  (10)
 
 #define FLAG_ADDRESS_CORE1 (0xFFFC0000)
+
+
+#define FLAG_START_PROCESS_CORE_1_ADDRESS    (SHM_CORE1_END_ADDRESS - 4)
+#define FLAG_FINISHE_PROCESS_CORE_1_ADDRESS  (SHM_CORE1_END_ADDRESS - 8)
+#define FLAG_SUM_VALUE_ADDRESS  			 (SHM_CORE1_END_ADDRESS - 12)
+
+
+
+
 #define FLAG_ADDRESS_CORE0 (FLAG_ADDRESS_CORE1 + 12)
+
+typedef double array_type;
+
 
 #endif
