@@ -158,88 +158,112 @@ void set_value_shared(int* address, int val)
 	*(volatile int*) address = (volatile int) val;
 }
 
+void send_signal_ro_start_all_cores()
+{
+	*(volatile int*)(SHM_MASTER_CORE_START_ADDRESS) = (volatile int) 0x12345678;
+}
+
 int main()
 {
 	print_all_memories();
-	volatile array_type* result = (volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS);
+	volatile array_type* result_core1 = (volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS);
+	volatile array_type* result_core2 = (volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE2_ADDRESS);
+	volatile array_type* result_core3 = (volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE3_ADDRESS);
+
 	init_platform();
 	printf("Core 0 start\n");
 	start_sample(0, 1);
 	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x11);
     array_type* arrays_num = (array_type*)(MASTER_CORE_START_DDR_ADDRESS + 0x50000);
-	uint32_t array_size = ARRAY_SIZE;
-	int half_array_size = ARRAY_SIZE / 2;
 
-	array_type value = 0.0;
-	for (int i = 0 ; i < array_size; i++) {
-		arrays_num[i] = value; //generate_random(12.32123);
-		value += 0.0001;
+	for (int i = 0 ; i < ARRAY_SIZE; i++) {
+		arrays_num[i] = generate_random(12.32123);
+//		value += 0.0001;
 	}
 
 	/****** Start SUM all array just in core0 *******/
 	XTime start, end;
 	XTime_GetTime(&start);
 	array_type sum = 0;
-	for (int i = 0 ; i < array_size; i++)
-		sum += arrays_num[i];
+	for (int i = 0 ; i < ARRAY_SIZE; i++) {
+		double val = cos(arrays_num[i]) + sin(arrays_num[i]);
+		val += tan(val) + sinh(val);
+		sum += val;
+	}
 	XTime_GetTime(&end);
 	printf("Core0 all array sum took %.2f us.\n", 1.0 * (end - start) / (COUNTS_PER_SECOND/1000000));
 	printf("Core0 sum nums: 0x%lx, dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
 	printf("\n\n\n");
+	array_type total_sum = 0;
 
 	sum = 0;
-	for (int i = 0 ; i < array_size; i++) {
-		sum += arrays_num[i];
-		if (i == half_array_size - 1) {
-			printf("First sum half: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
+	for (int i = 0 ; i < ARRAY_SIZE; i++) {
+		double val = cos(arrays_num[i]) + sin(arrays_num[i]);
+		val += tan(val) + sinh(val);
+		sum += val;
+		total_sum += val;
+		if (i == END_CORE0_ARRAY - 1) {
+			printf("Core0 sum is: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
+			sum = 0;
+		} else if (i == END_CORE1_ARRAY - 1) {
+			printf("Core1 sum is: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
+			sum = 0;
+		} else if (i == END_CORE2_ARRAY - 1) {
+			printf("Core2 sum is: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
+			sum = 0;
+		} else if (i == END_CORE3_ARRAY - 1) {
+			printf("Core3 sum is: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
 			sum = 0;
 		}
 	}
 
-	printf("Second sum half: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
-	printf("\n\n\n");
+//	printf("Total after split: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&total_sum), total_sum);
+//	printf("\n\n\n");
 
-	memcpy((array_type*)SHM_CORE1_START_ADDRESS, arrays_num, array_size);
+//	memcpy((array_type*)SHM_CORE1_START_ADDRESS, arrays_num, array_size);
 
-	/****** Start SUM half array in core0 and another half in core1 *******/
-	array_type total_sum = 0;
+//
+//	/****** Start SUM half array in core0 and another half in core1 *******/
 	XTime_GetTime(&start);
 
-	set_value_shared(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x01);
-	sum = 0;
-	for (int i = 0; i < half_array_size; i++)
-			sum += arrays_num[i];
+	send_signal_ro_start_all_cores(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x01);
+	array_type result_core0 = 0;
+	for (int i = 0; i < END_CORE0_ARRAY; i++)
+		result_core0 += arrays_num[i];
 
 	check_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x01);
 	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x00);
-	total_sum = (sum + *result);
+	total_sum = (result_core0 + *result_core1 + *result_core2 + *result_core3);
 
 	XTime_GetTime(&end);
 	printf("Two cores sum took: %.4f us.\n",  1.0 * (end - start) / (COUNTS_PER_SECOND/1000000));
-	printf("Half sum core0: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
-    printf("Half sum core1: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(result), *(array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS));;
-	printf("Total sum 0&1 : 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&total_sum), total_sum);
+	printf("Half sum core0: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&result_core0), result_core0);
+    printf("Half sum core1: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(result_core1), result_core1);
+    printf("Half sum core2: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(result_core2), result_core2);
+    printf("Half sum core3: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(result_core2), result_core3);;
+
+    printf("Total sum     : 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&total_sum), total_sum);
 	printf("\n\n\n");
-
-	/* Start SUM odd, even */
-	sleep(2);
-	sum = 0;
-	total_sum = 0;
-	XTime_GetTime(&start);
-	set_value_shared(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x01);
-
-	for (int i = 0; i < array_size; i+=2)
-			sum += arrays_num[i];
-	check_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x01);
-	total_sum = (sum + *(volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS));
-	XTime_GetTime(&end);
-
-	printf("Two cores Even & Odd mode took:  %.2f us.\n", 1.0 * (end - start) / (COUNTS_PER_SECOND/1000000));
-	printf("Half sum core0: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
-    printf("Half sum core1: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS), *(array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS));
-	printf("Total sum 0&1 : 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&total_sum), total_sum);
-
-
+//
+//	/* Start SUM odd, even */
+//	sleep(2);
+//	sum = 0;
+//	total_sum = 0;
+//	XTime_GetTime(&start);
+//	set_value_shared(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x01);
+//
+//	for (int i = 0; i < array_size; i+=2)
+//			sum += arrays_num[i];
+//	check_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x01);
+//	total_sum = (sum + *(volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS));
+//	XTime_GetTime(&end);
+//
+//	printf("Two cores Even & Odd mode took:  %.2f us.\n", 1.0 * (end - start) / (COUNTS_PER_SECOND/1000000));
+//	printf("Half sum core0: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
+//    printf("Half sum core1: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS), *(array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS));
+//	printf("Total sum 0&1 : 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&total_sum), total_sum);
+//
+//
 
 
 
