@@ -169,11 +169,14 @@ int main()
 	volatile array_type* result_core1 = (volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS);
 	volatile array_type* result_core2 = (volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE2_ADDRESS);
 	volatile array_type* result_core3 = (volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE3_ADDRESS);
+	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x11);
+	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_2_ADDRESS), 0x11);
+	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_3_ADDRESS), 0x11);
 
 	init_platform();
 	printf("Core 0 start\n");
 	start_sample(0, 1);
-	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x11);
+//	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x11);
     array_type* arrays_num = (array_type*)(MASTER_CORE_START_DDR_ADDRESS + 0x50000);
 
 	for (int i = 0 ; i < ARRAY_SIZE; i++) {
@@ -228,19 +231,21 @@ int main()
 
 	send_signal_ro_start_all_cores(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x01);
 	array_type result_core0 = 0;
-	for (int i = 0; i < END_CORE0_ARRAY; i++)
-		result_core0 += arrays_num[i];
-
+	for (int i = 0; i < END_CORE0_ARRAY; i++) {
+		double val = cos(arrays_num[i]) + sin(arrays_num[i]);
+		val += tan(val) + sinh(val);
+		result_core0 += val;
+	}
 	check_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x01);
-	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x00);
 	total_sum = (result_core0 + *result_core1 + *result_core2 + *result_core3);
+	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x00);
 
 	XTime_GetTime(&end);
 	printf("Two cores sum took: %.4f us.\n",  1.0 * (end - start) / (COUNTS_PER_SECOND/1000000));
 	printf("Half sum core0: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&result_core0), result_core0);
-    printf("Half sum core1: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(result_core1), result_core1);
-    printf("Half sum core2: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(result_core2), result_core2);
-    printf("Half sum core3: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(result_core2), result_core3);;
+    printf("Half sum core1: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(result_core1),  result_core1);
+    printf("Half sum core2: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(result_core2),  result_core2);
+    printf("Half sum core3: 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(result_core2),  result_core3);
 
     printf("Total sum     : 0x%lx,  dec: %.20lf \n", *(cast_hex_type)(&total_sum), total_sum);
 	printf("\n\n\n");

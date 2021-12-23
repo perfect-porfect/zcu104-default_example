@@ -103,20 +103,23 @@ int main()
 {
 	init_platform();
 	printf("Core 1 start\n");
-//	start_sample(1, 0);
-//
+	start_sample(1, 0);
+
 //	/*START SUM HALF */
-//	check_value_shared(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x01);
+	check_value_shared(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x01);
 //	set_value_shared(((int*)FLAG_START_PROCESS_CORE_1_ADDRESS), 0x00);
-//	volatile array_type* arrays_num = (volatile array_type*)(MASTER_CORE_START_DDR_ADDRESS + 0x50000);
-//	array_type sum = 0;
+	volatile array_type* arrays_num = (volatile array_type*)(MASTER_CORE_START_DDR_ADDRESS + 0x50000);
+	array_type sum = 0;
 //
-//	for (int i = half_array_size ; i < array_size; i++)
-//		sum += arrays_num[i];
+	for (int i = END_CORE0_ARRAY ; i < SHM_CORE2_START_ADDRESS; i++) {
+		double val = cos(arrays_num[i]) + sin(arrays_num[i]);
+		val += tan(val) + sinh(val);
+		sum += val;
+	}
 //
-//	*(volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS) = sum;
-//	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x01);
-////	printf("1: sum is: %f\n", sum);
+	*(volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS) = sum;
+	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x01);
+//	printf("1: sum is: %f\n", sum);
 //
 //	sum = 0;
 //	/* Start sum even */
