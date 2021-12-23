@@ -58,6 +58,60 @@
 #include <math.h>
 #include <stdint.h>
 
+
+void print_all_memories()
+{
+	printf("********** THESE ADREESESS CAME FROM addresses.h ********\n\n\n");
+
+	printf("*******************MASTER CORE(CORE 0) ******************\n");
+
+	printf("Start DDR ADDRESS: 0x%x \n", MASTER_CORE_START_DDR_ADDRESS);
+	printf("DDR size: 0x%x , %d bytes,   %f MB \n", MASTER_CORE_DDR_SIZE, MASTER_CORE_DDR_SIZE, (float)(MASTER_CORE_DDR_SIZE/ 1024 / 1024));
+	printf("END DDR ADDRESS: 0x%x \n\n\n", MASTER_CORE_END_DDR_ADDRESS);
+
+	printf("************************ CORE 1 *************************\n");
+
+	printf("Start DDR ADDRESS: 0x%x \n", CORE1_START_DDR_ADDRESS);
+	printf("DDR size: 0x%x , %d bytes,   %f MB \n", CORE1_DDR_SIZE, CORE1_DDR_SIZE, (float)(CORE1_DDR_SIZE/ 1024 / 1024));
+	printf("END DDR ADDRESS: 0x%x \n\n\n", CORE1_END_DDR_ADDRESS);
+
+	printf("************************ CORE 2 *************************\n");
+
+	printf("Start DDR ADDRESS: 0x%x \n", CORE2_START_DDR_ADDRESS);
+	printf("DDR size: 0x%x , %d bytes,   %f MB \n", CORE2_DDR_SIZE, CORE2_DDR_SIZE, (float)(CORE2_DDR_SIZE/ 1024 / 1024));
+	printf("END DDR ADDRESS: 0x%x \n\n\n", CORE2_END_DDR_ADDRESS);
+
+	printf("************************ CORE 3 *************************\n");
+
+	printf("Start DDR ADDRESS: 0x%x \n", CORE3_START_DDR_ADDRESS);
+	printf("DDR size: 0x%x , %d bytes,   %f MB \n", CORE3_DDR_SIZE, CORE3_DDR_SIZE, (float)(CORE3_DDR_SIZE/ 1024 / 1024));
+	printf("END DDR ADDRESS: 0x%x \n\n\n", CORE3_END_DDR_ADDRESS);
+
+	printf("******************* SHARED MEMORY  **********************\n");
+	printf("Start DDR ADDRESS: 0x%x \n", CORE3_END_DDR_ADDRESS);
+	printf("DDR size: 0x%x , %d bytes,   %f MB \n", SHM_DRR_SIZE, SHM_DRR_SIZE, (float)(SHM_DRR_SIZE/ 1024 / 1024));
+	printf("END DDR ADDRESS: 0x%x \n\n", SHM_END_DDR_ADDRESS);
+	printf("MASTER_CORE(0) SHM START ADDRESS: 0x%x \n", SHM_MASTER_CORE_START_ADDRESS);
+	printf("MASTER_CORE(0) SHM END   ADDRESS: 0x%x \n\n", SHM_MASTER_CORE_END_ADDRESS);
+
+	printf("SLAVE_CORE(1)  SHM START ADDRESS: 0x%x \n", SHM_CORE1_START_ADDRESS);
+	printf("SLAVE_CORE(1)  SHM END   ADDRESS: 0x%x \n\n", SHM_CORE1_END_ADDRESS);
+
+	printf("SLAVE_CORE(2)  SHM START ADDRESS: 0x%x \n", SHM_CORE2_START_ADDRESS);
+	printf("SLAVE_CORE(2)  SHM END   ADDRESS: 0x%x \n\n", SHM_CORE2_END_ADDRESS);
+
+	printf("SLAVE_CORE(3)  SHM START ADDRESS: 0x%x \n", SHM_CORE3_START_ADDRESS);
+	printf("SLAVE_CORE(3)  SHM END   ADDRESS: 0x%x \n\n", SHM_CORE3_END_ADDRESS);
+
+	printf("DDR size for master core(0): 0x%x , %d bytes,   %f MB \n", SHM_MASTER_CORE_DDR_SIZE, SHM_MASTER_CORE_DDR_SIZE, (float)(SHM_MASTER_CORE_DDR_SIZE/ 1024 / 1024));
+	printf("DDR size for slave  core(1): 0x%x , %d bytes,   %f MB \n", SHM_CORE1_CORE_DDR_SIZE, SHM_CORE1_CORE_DDR_SIZE,   (float)(SHM_CORE1_CORE_DDR_SIZE/ 1024 / 1024));
+	printf("DDR size for slave  core(2): 0x%x , %d bytes,   %f MB \n", SHM_CORE2_CORE_DDR_SIZE, SHM_CORE2_CORE_DDR_SIZE,   (float)(SHM_CORE2_CORE_DDR_SIZE/ 1024 / 1024));
+	printf("DDR size for slave  core(3): 0x%x , %d bytes,   %f MB \n", SHM_CORE3_CORE_DDR_SIZE, SHM_CORE3_CORE_DDR_SIZE,   (float)(SHM_CORE3_CORE_DDR_SIZE/ 1024 / 1024));
+
+}
+
+
+
 void wait_for_core1_signal(int val)
 {
 	volatile int* new_val = (volatile int*)(FLAG_ADDRESS_CORE0);
@@ -106,6 +160,7 @@ void set_value_shared(int* address, int val)
 
 int main()
 {
+	print_all_memories();
 	volatile array_type* result = (volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS);
 	init_platform();
 	printf("Core 0 start\n");
@@ -128,7 +183,7 @@ int main()
 	for (int i = 0 ; i < array_size; i++)
 		sum += arrays_num[i];
 	XTime_GetTime(&end);
-	printf("CORE0 all array sum took %.2f us.\n", 1.0 * (end - start) / (COUNTS_PER_SECOND/1000000));
+	printf("Core0 all array sum took %.2f us.\n", 1.0 * (end - start) / (COUNTS_PER_SECOND/1000000));
 	printf("Core0 sum nums: 0x%lx, dec: %.20lf \n", *(cast_hex_type)(&sum), sum);
 	printf("\n\n\n");
 
