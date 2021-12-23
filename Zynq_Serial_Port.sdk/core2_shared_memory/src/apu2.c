@@ -54,7 +54,7 @@ int main()
 {
     init_platform();
 
-    print("Hello World\n\r");
+	printf("Core 2 start\n");
 
     cleanup_platform();
     return 0;

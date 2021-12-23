@@ -24,8 +24,18 @@ dow /home/hp/projects/vivado/zcu104-default_example/Zynq_Serial_Port.sdk/core0_s
 targets -set -nocase -filter {name =~"*A53*1" && jtag_cable_name =~ "Xilinx HW-Z1-ZCU104 FT4232H 93089A"} -index 1
 rst -processor
 dow /home/hp/projects/vivado/zcu104-default_example/Zynq_Serial_Port.sdk/core1_shared_memory/Debug/core1_shared_memory.elf
+targets -set -nocase -filter {name =~"*A53*2" && jtag_cable_name =~ "Xilinx HW-Z1-ZCU104 FT4232H 93089A"} -index 1
+rst -processor
+dow /home/hp/projects/vivado/zcu104-default_example/Zynq_Serial_Port.sdk/core2_shared_memory/Debug/core2_shared_memory.elf
+targets -set -nocase -filter {name =~"*A53*3" && jtag_cable_name =~ "Xilinx HW-Z1-ZCU104 FT4232H 93089A"} -index 1
+rst -processor
+dow /home/hp/projects/vivado/zcu104-default_example/Zynq_Serial_Port.sdk/core3_shared_memory/Debug/core3_shared_memory.elf
 configparams force-mem-access 0
 targets -set -nocase -filter {name =~"*A53*0" && jtag_cable_name =~ "Xilinx HW-Z1-ZCU104 FT4232H 93089A"} -index 1
 con
 targets -set -nocase -filter {name =~"*A53*1" && jtag_cable_name =~ "Xilinx HW-Z1-ZCU104 FT4232H 93089A"} -index 1
+con
+targets -set -nocase -filter {name =~"*A53*2" && jtag_cable_name =~ "Xilinx HW-Z1-ZCU104 FT4232H 93089A"} -index 1
+con
+targets -set -nocase -filter {name =~"*A53*3" && jtag_cable_name =~ "Xilinx HW-Z1-ZCU104 FT4232H 93089A"} -index 1
 con

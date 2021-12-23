@@ -165,7 +165,7 @@ void send_signal_ro_start_all_cores()
 
 int main()
 {
-	print_all_memories();
+//	print_all_memories();
 	volatile array_type* result_core1 = (volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS);
 	volatile array_type* result_core2 = (volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE2_ADDRESS);
 	volatile array_type* result_core3 = (volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE3_ADDRESS);
