@@ -114,10 +114,10 @@ int main()
 	volatile array_type* arrays_num = (volatile array_type*)(MASTER_CORE_START_DDR_ADDRESS + 0x50000);
 	array_type sum = 0;
 
-	for (int i = 0 ; i < half_array_size; i++)
+	for (int i = half_array_size ; i < array_size; i++)
 		sum += arrays_num[i];
 
-	*(volatile array_type*)(FLAG_SUM_VALUE_ADDRESS) = sum;
+	*(volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS) = sum;
 	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x01);
 //	printf("1: sum is: %f\n", sum);
 
@@ -129,7 +129,7 @@ int main()
 		sum += arrays_num[i];
 
 //	printf("2: sum is: %f\n", sum);
-	*(volatile array_type*)(FLAG_SUM_VALUE_ADDRESS) = sum;
+	*(volatile array_type*)(FLAG_SUM_VALUE_ADDRESS_CORE1_ADDRESS) = sum;
 	set_value_shared(((int*)FLAG_FINISHE_PROCESS_CORE_1_ADDRESS), 0x01);
 
 
